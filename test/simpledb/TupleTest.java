@@ -31,27 +31,27 @@ public class TupleTest extends SimpleDbTestBase {
         assertEquals(new IntField(37), tup.getField(1));
     }
 
-   /** Unit test for fields() iterator 
-     * 
+   /** Unit test for fields() iterator
+     *
      */
     @Test public void fields() {
 
-    	int numfields = 4;
-    	TupleDesc td = Utility.getTupleDesc(numfields);
+      int numfields = 4;
+      TupleDesc td = Utility.getTupleDesc(numfields);
 
-    	// set up the tuple
-    	Tuple tup = new Tuple(td);
-    	for (int i=0; i < numfields; i++) 
-    		tup.setField(i, new IntField(i));
+      // set up the tuple
+      Tuple tup = new Tuple(td);
+      for (int i=0; i < numfields; i++)
+        tup.setField(i, new IntField(i));
 
-    	// use the iterator, make sure get the same number of fields out
-    	Iterator<Field> iter = tup.fields();
-    	int count = 0;
-    	while (iter.hasNext()) {
-    		iter.next();
-    		count++;
-    	}
-    	assertEquals(numfields,count);
+      // use the iterator, make sure get the same number of fields out
+      Iterator<Field> iter = tup.fields();
+      int count = 0;
+      while (iter.hasNext()) {
+        iter.next();
+        count++;
+      }
+      assertEquals(numfields,count);
     }
 
     /**
@@ -64,18 +64,18 @@ public class TupleTest extends SimpleDbTestBase {
     }
 
     /** Unit test for Tuple.resetTupleDesc()
-     * 
+     *
      */
     @Test public void resetTupleDesc() {
-    	// create a tuple with the original tuple desc
-    	TupleDesc origTd = Utility.getTupleDesc(2,"orig");
-    	Tuple tup = new Tuple(origTd);
-    	assertEquals("orig0", tup.getTupleDesc().getFieldName(0));
-    	
-    	// rename the fields by changing the tuple desc to a new one
-    	TupleDesc newTd = Utility.getTupleDesc(2,"new");
-    	tup.resetTupleDesc(newTd);
-    	assertEquals("new0", tup.getTupleDesc().getFieldName(0));
+      // create a tuple with the original tuple desc
+      TupleDesc origTd = Utility.getTupleDesc(2,"orig");
+      Tuple tup = new Tuple(origTd);
+      assertEquals("orig0", tup.getTupleDesc().getFieldName(0));
+
+      // rename the fields by changing the tuple desc to a new one
+      TupleDesc newTd = Utility.getTupleDesc(2,"new");
+      tup.resetTupleDesc(newTd);
+      assertEquals("new0", tup.getTupleDesc().getFieldName(0));
     }
 
     /**
@@ -87,14 +87,14 @@ public class TupleTest extends SimpleDbTestBase {
         RecordId rid1 = new RecordId(pid1, 0);
         tup1.setRecordId(rid1);
 
-	try {
-	    assertEquals(rid1, tup1.getRecordId());
-	} catch (java.lang.UnsupportedOperationException e) {
-		//rethrow the exception with an explanation
-    	throw new UnsupportedOperationException("modifyRecordId() test failed due to " +
-    			"RecordId.equals() not being implemented.  This is not required for Lab 1, " +
-    			"but should pass when you do implement the RecordId class.");
-	}
+  try {
+      assertEquals(rid1, tup1.getRecordId());
+  } catch (java.lang.UnsupportedOperationException e) {
+    //rethrow the exception with an explanation
+      throw new UnsupportedOperationException("modifyRecordId() test failed due to " +
+          "RecordId.equals() not being implemented.  This is not required for Lab 1, " +
+          "but should pass when you do implement the RecordId class.");
+  }
     }
 
     /**
