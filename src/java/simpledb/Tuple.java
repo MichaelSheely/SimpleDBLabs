@@ -26,7 +26,8 @@ public class Tuple implements Serializable {
      */
     public Tuple(TupleDesc td) {
         description = td;
-        elements = new ArrayList<Field>();
+        int numFields = td.numFields();
+        elements = new ArrayList<Field>(Arrays.asList(new Field[numFields]));
     }
 
     /**
@@ -85,8 +86,12 @@ public class Tuple implements Serializable {
      * where \t is any whitespace, except newline, and \n is a newline
      */
     public String toString() {
-        // some code goes here
-        throw new UnsupportedOperationException("Implement this");
+        String descriptor = "";
+        for (Field elem : elements) {
+            descriptor += String.format("%s\t", elem.toString());
+        }
+        descriptor += "\n";
+        return descriptor;
     }
 
     /**
@@ -95,8 +100,7 @@ public class Tuple implements Serializable {
      * */
     public Iterator<Field> fields()
     {
-        // some code goes here
-        return null;
+        return elements.iterator();
     }
 
     /**
