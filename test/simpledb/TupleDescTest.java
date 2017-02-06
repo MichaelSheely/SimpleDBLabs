@@ -75,25 +75,26 @@ public class TupleDescTest extends SimpleDbTestBase {
 
         for (int len: lengths) {
             TupleDesc td = Utility.getTupleDesc(len);
-            for (int i = 0; i < len; ++i)
+            for (int i = 0; i < len; ++i) {
                 assertEquals(Type.INT_TYPE, td.getFieldType(i));
+            }
         }
     }
-    
+
     /**
      * Unit test for TupleDesc.nameToId()
      */
     @Test public void nameToId() {
         int[] lengths = new int[] { 1, 2, 1000 };
         String prefix = "test";
-        
+
         for (int len: lengths) {
             // Make sure you retrieve well-named fields
             TupleDesc td = Utility.getTupleDesc(len, prefix);
             for (int i = 0; i < len; ++i) {
                 assertEquals(i, td.fieldNameToIndex(prefix + i));
             }
-            
+
             // Make sure you throw exception for non-existent fields
             try {
                 td.fieldNameToIndex("foo");
@@ -101,7 +102,7 @@ public class TupleDescTest extends SimpleDbTestBase {
             } catch (NoSuchElementException e) {
                 // expected to get here
             }
-            
+
             // Make sure you throw exception for null searches
             try {
                 td.fieldNameToIndex(null);
@@ -119,7 +120,7 @@ public class TupleDescTest extends SimpleDbTestBase {
                 // expected to get here
             }
         }
-    }    
+    }
 
     /**
      * Unit test for TupleDesc.getSize()
