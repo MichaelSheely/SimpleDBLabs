@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * The BufferPool is also responsible for locking;  when a transaction fetches
  * a page, BufferPool checks that the transaction has the appropriate
  * locks to read/write the page.
- * 
+ *
  * @Threadsafe, all fields are final
  */
 public class BufferPool {
@@ -26,8 +26,8 @@ public class BufferPool {
     constructor instead. */
     public static final int DEFAULT_PAGES = 50;
 
-    /** TODO for Lab 4: create your private Lock Manager class. 
-	Be sure to instantiate it in the constructor. */
+    /** TODO for Lab 4: create your private Lock Manager class.
+    Be sure to instantiate it in the constructor. */
 
     /**
      * Creates a BufferPool that caches up to numPages pages.
@@ -37,7 +37,7 @@ public class BufferPool {
     public BufferPool(int numPages) {
         // some code goes here
     }
-    
+
     public static int getPageSize() {
       return pageSize;
     }
@@ -46,7 +46,7 @@ public class BufferPool {
      * Helper: this should be used for testing only!!!
      */
     public static void setPageSize(int pageSize) {
-	BufferPool.pageSize = pageSize;
+      BufferPool.pageSize = pageSize;
     }
 
     /**
@@ -57,16 +57,25 @@ public class BufferPool {
      * The retrieved page should be looked up in the buffer pool.  If it
      * is present, it should be returned.  If it is not present, it should
      * be added to the buffer pool and returned.  If there is insufficient
-     * space in the buffer pool, an page should be evicted and the new page
+     * space in the buffer pool, a page should be evicted and the new page
      * should be added in its place.
      *
      * @param tid the ID of the transaction requesting the page
      * @param pid the ID of the requested page
      * @param perm the requested permissions on the page
      */
-    public  Page getPage(TransactionId tid, PageId pid, Permissions perm)
+    public Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException {
-        // some code goes here
+        // couldn't get this to compile, so left it commented out
+        // acquire lock for page pid
+        // Lock l;
+        // l.lock();
+        // if ! bufferPool.contains(pid) {
+        //     PageId eviction = least_recently_used();
+        //     bufferPool.evict(eviction)
+        //     Page p = bufferPool.load(pid)
+        //     return p;
+        // }
         return null;
     }
 
@@ -116,13 +125,13 @@ public class BufferPool {
 
     /**
      * Add a tuple to the specified table on behalf of transaction tid.  Will
-     * acquire a write lock on the page the tuple is added to and any other 
-     * pages that are updated (Lock acquisition is not needed for lab2). 
+     * acquire a write lock on the page the tuple is added to and any other
+     * pages that are updated (Lock acquisition is not needed for lab2).
      * May block if the lock(s) cannot be acquired.
-     * 
+     *
      * Marks any pages that were dirtied by the operation as dirty by calling
-     * their markDirty bit, and updates cached versions of any pages that have 
-     * been dirtied so that future requests see up-to-date pages. 
+     * their markDirty bit, and updates cached versions of any pages that have
+     * been dirtied so that future requests see up-to-date pages.
      *
      * @param tid the transaction adding the tuple
      * @param tableId the table to add the tuple to
@@ -140,8 +149,8 @@ public class BufferPool {
      * other pages that are updated. May block if the lock(s) cannot be acquired.
      *
      * Marks any pages that were dirtied by the operation as dirty by calling
-     * their markDirty bit, and updates cached versions of any pages that have 
-     * been dirtied so that future requests see up-to-date pages. 
+     * their markDirty bit, and updates cached versions of any pages that have
+     * been dirtied so that future requests see up-to-date pages.
      *
      * @param tid the transaction deleting the tuple.
      * @param t the tuple to delete
