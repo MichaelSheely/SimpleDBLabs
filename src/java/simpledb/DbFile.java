@@ -22,7 +22,8 @@ public interface DbFile {
     /**
      * Push the specified page to disk.
      *
-     * @param p The page to write.  page.getId().pageno() specifies the offset into the file where the page should be written.
+     * @param p The page to write.  page.getId().pageno() specifies the offset
+     * into the file where the page should be written.
      * @throws IOException if the write fails
      *
      */
@@ -50,8 +51,8 @@ public interface DbFile {
      * may block until the lock can be acquired.
      *
      * @param tid The transaction performing the update
-     * @param t The tuple to delete.  This tuple should be updated to reflect that
-     *          it is no longer stored on any page.
+     * @param t The tuple to delete.  This tuple should be updated to reflect
+     *          that it is no longer stored on any page.
      * @return An ArrayList contain the pages that were modified
      * @throws DbException if the tuple cannot be deleted or is not a member
      *   of the file
@@ -82,7 +83,7 @@ public interface DbFile {
      * @return an ID uniquely identifying this HeapFile.
      */
     public int getId();
-    
+
     /**
      * Returns the TupleDesc of the table stored in this DbFile.
      * @return TupleDesc of this DbFile.
