@@ -3,6 +3,7 @@ package simpledb;
 import java.io.*;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
 
 /**
  * BufferPool manages the reading and writing of pages into memory from
@@ -21,6 +22,12 @@ public class BufferPool {
 
     private static int pageSize = PAGE_SIZE;
 
+    private HashMap<PageId, Page> page_map;
+
+    private int num_cached;
+
+    private int map_capacity;
+
     /** Default number of pages passed to the constructor. This is used by
     other classes. BufferPool should use the numPages argument to the
     constructor instead. */
@@ -35,7 +42,9 @@ public class BufferPool {
      * @param numPages maximum number of pages in this buffer pool.
      */
     public BufferPool(int numPages) {
-        // some code goes here
+        map_capacity = numPages;
+        page_map = new HashMap<PageId, Page>(map_capacity);
+        num_cached = 0;
     }
 
     public static int getPageSize() {
@@ -65,18 +74,19 @@ public class BufferPool {
      * @param perm the requested permissions on the page
      */
     public Page getPage(TransactionId tid, PageId pid, Permissions perm)
-        throws TransactionAbortedException, DbException {
-        // couldn't get this to compile, so left it commented out
-        // acquire lock for page pid
-        // Lock l;
-        // l.lock();
-        // if ! bufferPool.contains(pid) {
-        //     PageId eviction = least_recently_used();
-        //     bufferPool.evict(eviction)
-        //     Page p = bufferPool.load(pid)
-        //     return p;
-        // }
-        return null;
+          throws TransactionAbortedException, DbException {
+        Page p = page_map.get(pid);
+        if (p == null) {  // we need to find the page and cache it
+            int table_id = pid.getTableId();
+            DbFile db_file = Database.getCatalog().getDatabaseFile(table_id);
+            p = db_file.readPage(pid);
+            if (num_cached == map_capacity) {
+                throw new TransactionAbortedException();
+            }
+            page_map.put(pid, p);
+            num_cached += 1;
+        }
+        return p;
     }
 
     /**
