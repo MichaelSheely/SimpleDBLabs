@@ -23,11 +23,12 @@ public interface Field extends Serializable{
     public boolean compare(Predicate.Op op, Field value);
 
     /**
-     * Returns the type of this field (see {@link Type#INT_TYPE} or {@link Type#STRING_TYPE}
+     * Returns the type of this field
+     *  (see {@link Type#INT_TYPE} or {@link Type#STRING_TYPE}
      * @return type of this field
      */
     public Type getType();
-    
+
     /**
      * Hash code.
      * Different Field objects representing the same value should probably
