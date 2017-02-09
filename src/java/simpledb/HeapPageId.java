@@ -40,7 +40,6 @@ public class HeapPageId implements PageId {
      */
     public int hashCode() {
         String concat = Integer.toString(tableId) + Integer.toString(pgNo);
-        System.out.println("Our fabulous hashCode is " + concat);
         return Integer.parseInt(concat);
     }
 
@@ -52,7 +51,7 @@ public class HeapPageId implements PageId {
      *   ids are the same)
      */
     public boolean equals(Object o) {
-        if (!(o instanceof PageId)) {
+        if (o instanceof PageId) {
             PageId other = (PageId) o;
             return this.tableId == other.getTableId() &&
                    this.pgNo == other.pageNumber();
