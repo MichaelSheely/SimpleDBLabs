@@ -42,24 +42,24 @@ public class RecordIdTest extends SimpleDbTestBase {
     @Test public void tupleno() {
         assertEquals(3, hrid.tupleno());
     }
-    
+
     /**
      * Unit test for RecordId.equals()
      */
     @Test public void equals() {
-    	assertEquals(hrid, hrid2);
-    	assertEquals(hrid2, hrid);
-    	assertFalse(hrid.equals(hrid3));
-    	assertFalse(hrid3.equals(hrid));
-    	assertFalse(hrid2.equals(hrid4));
-    	assertFalse(hrid4.equals(hrid2));
+      assertEquals(hrid, hrid2);
+      assertEquals(hrid2, hrid);
+      assertFalse(hrid.equals(hrid3));
+      assertFalse(hrid3.equals(hrid));
+      assertFalse(hrid2.equals(hrid4));
+      assertFalse(hrid4.equals(hrid2));
     }
-    
+
     /**
      * Unit test for RecordId.hashCode()
      */
     @Test public void hCode() {
-    	assertEquals(hrid.hashCode(), hrid2.hashCode());
+      assertEquals(hrid.hashCode(), hrid2.hashCode());
     }
 
     /**
