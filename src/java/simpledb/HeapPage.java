@@ -17,7 +17,8 @@ public class HeapPage implements Page {
     final TupleDesc td;
     final byte header[];
     final Tuple tuples[];
-    final int numSlots;
+    int numSlots;
+    int emptySlots;
 
     byte[] oldData;
     private final Byte oldDataLock=new Byte((byte)0);
@@ -42,7 +43,9 @@ public class HeapPage implements Page {
         this.pid = id;
         this.td = Database.getCatalog().getTupleDesc(id.getTableId());
         this.numSlots = getNumTuples();
-        DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data));
+        this.emptySlots = getNumTuples();
+        DataInputStream dis =
+            new DataInputStream(new ByteArrayInputStream(data));
 
         // allocate and read the header slots of this page
         header = new byte[getHeaderSize()];
@@ -52,8 +55,10 @@ public class HeapPage implements Page {
         tuples = new Tuple[numSlots];
         try{
             // allocate and read the actual records of this page
-            for (int i=0; i<tuples.length; i++)
+            for (int i=0; i<tuples.length; i++) {
                 tuples[i] = readNextTuple(dis,i);
+                emptySlots -= 1;
+            }
         }catch(NoSuchElementException e){
             e.printStackTrace();
         }
@@ -66,20 +71,20 @@ public class HeapPage implements Page {
       @return the number of tuples on this page
       */
     private int getNumTuples() {
-        // some code goes here
-        return 0;
-
+        int tupleSize = Database.getCatalog().getTupleDesc(
+            pid.getTableId()).getSize();
+        int pageSize = BufferPool.PAGE_SIZE;
+        return (int) Math.floor((pageSize * 8.0) / (tupleSize * 8 + 1));
     }
 
     /**
-     * Computes the number of bytes in the header of a page in a HeapFile with each tuple occupying tupleSize bytes
-     * @return the number of bytes in the header of a page in a HeapFile with each tuple occupying tupleSize bytes
+     * Computes the number of bytes in the header of a page in a
+     * HeapFile with each tuple occupying tupleSize bytes
+     * @return the number of bytes in the header of a page in a
+     * HeapFile with each tuple occupying tupleSize bytes
      */
     private int getHeaderSize() {
-
-        // some code goes here
-        return 0;
-
+        return (int) Math.ceil(getNumTuples() / 8.0);
     }
 
     /** Return a view of this page before it was modified
@@ -111,14 +116,14 @@ public class HeapPage implements Page {
      * @return the PageId associated with this page.
      */
     public HeapPageId getId() {
-        // some code goes here
-        throw new UnsupportedOperationException("implement this");
+        return pid;
     }
 
     /**
      * Suck up tuples from the source file.
      */
-    private Tuple readNextTuple(DataInputStream dis, int slotId) throws NoSuchElementException {
+    private Tuple readNextTuple(DataInputStream dis, int slotId)
+            throws NoSuchElementException {
         // if associated bit is not set, read forward to the next tuple, and
         // return null.
         if (!isSlotUsed(slotId)) {
@@ -244,6 +249,7 @@ public class HeapPage implements Page {
      * @param t The tuple to delete
      */
     public void deleteTuple(Tuple t) throws DbException {
+        emptySlots += 1;
         // some code goes here
         // not necessary for lab1
     }
@@ -256,6 +262,7 @@ public class HeapPage implements Page {
      * @param t The tuple to add.
      */
     public void insertTuple(Tuple t) throws DbException {
+        emptySlots -= 1;
         // some code goes here
         // not necessary for lab1
     }
@@ -283,16 +290,29 @@ public class HeapPage implements Page {
      * Returns the number of empty slots on this page.
      */
     public int getNumEmptySlots() {
-        // some code goes here
-        return 0;
+        // TODO: Eventually make this use a member variable so we don't
+        // have to iterate through the header to know how many are empty.
+        // return emptySlots;
+        Iterator<Tuple> it = iterator();
+        int empties = numSlots;
+        while (it.hasNext()) {
+            it.next();
+            empties -= 1;
+        }
+        return empties;
     }
 
     /**
      * Returns true if associated slot on this page is filled.
      */
     public boolean isSlotUsed(int i) {
-        // some code goes here
-        return false;
+        //System.out.println("Investigating slot " + i);
+        int byte_num = i / 8;
+        int bit_within_byte = i % 8;
+        //System.out.println("Looking at bit " + bit_within_byte + " witin byte " + byte_num + ".");
+        //System.out.println("Byte " + byte_num + " is " + header[byte_num]);
+        boolean is_zero = (header[byte_num] & (1 << bit_within_byte)) == 0;
+        return !is_zero;
     }
 
     /**
@@ -309,9 +329,42 @@ public class HeapPage implements Page {
      * (note that this iterator shouldn't return tuples in empty slots!)
      */
     public Iterator<Tuple> iterator() {
-        // some code goes here
-        return null;
+        return new TupleIter();
     }
 
+    private class TupleIter implements Iterator<Tuple> {
+        private int numTuples;
+        private int nextTupleIndex;
+        public TupleIter() {
+            nextTupleIndex = 0;
+            numTuples = getNumTuples();
+            while (!(isSlotUsed(nextTupleIndex))) {
+                ++nextTupleIndex;
+                if (nextTupleIndex == numTuples - 1) {
+                    nextTupleIndex = -1;
+                    break;
+                }
+            }
+        }
+
+        public boolean hasNext() {
+            return nextTupleIndex != -1;
+        }
+        public Tuple next() {
+            if (this.hasNext()) {
+                Tuple tup = tuples[nextTupleIndex];
+                ++nextTupleIndex;
+                while (!(isSlotUsed(nextTupleIndex))) {
+                    ++nextTupleIndex;
+                    if (nextTupleIndex == numTuples - 1) {
+                        nextTupleIndex = -1;
+                        break;
+                    }
+                }
+                return tup;
+            }
+            throw new NoSuchElementException();
+        }
+    }
 }
 
