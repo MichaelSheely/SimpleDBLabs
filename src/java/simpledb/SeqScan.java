@@ -9,12 +9,20 @@ import java.util.*;
  */
 public class SeqScan implements DbIterator {
 
+    private boolean open;
+
+    private String tableAlias;
+
+    private int tableid;
+
+    private Iterator<Tuple> iter;
+
     private static final long serialVersionUID = 1L;
 
     /**
      * Creates a sequential scan over the specified table as a part of the
      * specified transaction.
-     * 
+     *
      * @param tid
      *            The transaction this scan is running as a part of.
      * @param tableid
@@ -28,7 +36,10 @@ public class SeqScan implements DbIterator {
      *            tableAlias.null, or null.null).
      */
     public SeqScan(TransactionId tid, int tableid, String tableAlias) {
-        // some code goes here
+        open = false;
+        this.tableid = tableid;
+        this.tableName = tableAlias;
+        Database.getCatalog().getDatabaseFile(tableid).iterator();
     }
 
     /**
@@ -37,16 +48,14 @@ public class SeqScan implements DbIterator {
      *       be the actual name of the table in the catalog of the database
      * */
     public String getTableName() {
-        return null;
+        return Database.getCatalog().getTableName(tableid);
     }
-    
+
     /**
-     * @return Return the alias of the table this operator scans. 
+     * @return Return the alias of the table this operator scans.
      * */
-    public String getAlias()
-    {
-        // some code goes here
-        return null;
+    public String getAlias() {
+        return tableName;
     }
 
     /**
@@ -70,7 +79,7 @@ public class SeqScan implements DbIterator {
     }
 
     public void open() throws DbException, TransactionAbortedException {
-        // some code goes here
+        open = true;
     }
 
     /**
@@ -78,7 +87,7 @@ public class SeqScan implements DbIterator {
      * prefixed with the tableAlias string from the constructor. This prefix
      * becomes useful when joining tables containing a field(s) with the same
      * name.
-     * 
+     *
      * @return the TupleDesc with field names from the underlying HeapFile,
      *         prefixed with the tableAlias string from the constructor.
      */
@@ -88,6 +97,9 @@ public class SeqScan implements DbIterator {
     }
 
     public boolean hasNext() throws TransactionAbortedException, DbException {
+        if (!open) {
+            throw new IllegalStateException();
+        }
         // some code goes here
         return false;
     }

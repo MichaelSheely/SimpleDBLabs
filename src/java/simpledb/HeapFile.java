@@ -2,6 +2,7 @@ package simpledb;
 
 import java.io.*;
 import java.util.*;
+import java.io.RandomAccessFile;
 
 /**
  * HeapFile is an implementation of a DbFile that stores a collection of tuples
@@ -15,6 +16,11 @@ import java.util.*;
  */
 public class HeapFile implements DbFile {
 
+    private File file;
+    private HeapPage[] pages;
+    private int numPages;
+    private final int tableId;
+    private TupleDesc td;
     /**
      * Constructs a heap file backed by the specified file.
      *
@@ -23,7 +29,39 @@ public class HeapFile implements DbFile {
      *            file.
      */
     public HeapFile(File f, TupleDesc td) {
-        // some code goes here
+        this.file = f;
+        this.tableId = f.getAbsoluteFile().hashCode();
+        this.td = td;
+        int pageSize = BufferPool.PAGE_SIZE;
+        int pagesNeeded;
+
+        RandomAccessFile rf;
+        try {
+            rf = new RandomAccessFile(f, "r");
+            pagesNeeded = (int) Math.ceil((double) rf.length() / pageSize);
+        } catch (Exception e) {
+            System.err.println("Caugth exception1:" + e.getMessage());
+            return;
+        }
+        this.numPages = pagesNeeded;
+        System.out.println("Created " + pagesNeeded + " heap files.");
+        pages = new HeapPage[pagesNeeded];
+
+        // TODO Find out the best way to handle exceptions
+        for (int pageIndex = 0; pageIndex < pagesNeeded; ++pageIndex) {
+            int offset = pageIndex * pageSize;
+            byte[] data = new byte[pageSize];
+            try {
+                rf.readFully(data, offset, pageSize);
+                HeapPageId pid = new HeapPageId(tableId, pageIndex);
+                System.out.println("Created HeapPageId");
+                pages[pageIndex] = new HeapPage(pid, data);
+                System.out.println("Wrote to pages["+pageIndex+"].");
+            } catch (Exception e) {
+                System.err.println("Caught exception2:" + e.getMessage());
+                return;
+            }
+        }
     }
 
     /**
@@ -32,8 +70,7 @@ public class HeapFile implements DbFile {
      * @return the File backing this HeapFile on disk.
      */
     public File getFile() {
-        // some code goes here
-        return null;
+        return file;
     }
 
     /**
@@ -46,8 +83,7 @@ public class HeapFile implements DbFile {
      * @return an ID uniquely identifying this HeapFile.
      */
     public int getId() {
-        // some code goes here
-        throw new UnsupportedOperationException("implement this");
+        return tableId;
     }
 
     /**
@@ -56,8 +92,7 @@ public class HeapFile implements DbFile {
      * @return TupleDesc of this DbFile.
      */
     public TupleDesc getTupleDesc() {
-        // some code goes here
-        throw new UnsupportedOperationException("implement this");
+        return td;
     }
 
     // see DbFile.java for javadocs
@@ -76,8 +111,7 @@ public class HeapFile implements DbFile {
      * Returns the number of pages in this HeapFile.
      */
     public int numPages() {
-        // some code goes here
-        return 0;
+        return numPages;
     }
 
     // see DbFile.java for javadocs
@@ -89,8 +123,8 @@ public class HeapFile implements DbFile {
     }
 
     // see DbFile.java for javadocs
-    public ArrayList<Page> deleteTuple(TransactionId tid, Tuple t) throws DbException,
-            TransactionAbortedException {
+    public ArrayList<Page> deleteTuple(TransactionId tid, Tuple t)
+            throws DbException, TransactionAbortedException {
         // some code goes here
         return null;
         // not necessary for lab1
@@ -98,9 +132,56 @@ public class HeapFile implements DbFile {
 
     // see DbFile.java for javadocs
     public DbFileIterator iterator(TransactionId tid) {
-        // some code goes here
-        return null;
+        System.out.println("numPages is " + numPages);
+        return new TupleIter(numPages);
     }
 
+    private class TupleIter implements DbFileIterator {
+
+        private int pageNum;
+        private int numPages;
+        private boolean open;
+        private Iterator<Tuple> iter;
+        public TupleIter(int numPages) {
+            open = false;
+            this.numPages = numPages;
+        }
+
+        public void open() {
+            open = true;
+            pageNum = 0;
+            System.out.println("pageNum is " + pageNum);
+            System.out.println("pages has length " + pages.length);
+            iter = pages[pageNum].iterator();
+        }
+
+        public boolean hasNext() {
+            return open && ((pageNum < numPages - 1) || iter.hasNext());
+        }
+
+        public Tuple next() {
+            if (!open) {
+                throw new NoSuchElementException();
+            }
+            if (!(iter.hasNext())) {
+                if (pageNum == numPages - 1) {
+                    throw new NoSuchElementException();
+                }
+                ++pageNum;
+                iter = pages[pageNum].iterator();
+            }
+            return iter.next();
+        }
+
+        public void rewind() {
+            open();
+        }
+
+        public void close() {
+            open = false;
+            pageNum = -1;
+            iter = null;
+        }
+    }
 }
 
